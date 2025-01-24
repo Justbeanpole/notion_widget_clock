@@ -28,25 +28,25 @@ body{
 }
 
 .days {
-  background: #EF2F3C;
+    background: rgb(73, 75, 87);
 }
 
 .hours {
-  background: #eeeeee;
-  color: #183059;
+    background: rgb(73, 75, 87);
+
 }
 
 .minutes {
-  background: #276FBF;
+  background: rgb(73, 75, 87);
 }
 
 .seconds {
-  background: #F0A202;
+    background: rgb(73, 75, 87);
 }
 
 .numbers {
   font-family: 'Montserrat', sans-serif;
-  color:  #183059;
+  color: #ffffff;
   font-size: 4em;
   text-align: center;
 }
@@ -102,33 +102,79 @@ body{
 
 </body>
 <script>
-    const year = new Date().getFullYear();
-const myDate = new Date();
+// 올 해(현재 연도) 구하기
+const year = new Date().getFullYear();
+
+// 기존 코드에서 myDate 부분을 '올해가 끝나는 시점(12/31 23:59:59)'으로 설정
+// (브라우저 로컬 타임존 기준)
+const myDate = new Date(year, 11, 31, 23, 59, 59);
 console.log(myDate);
 
 // countdown
-let timer = setInterval(function() {
+let timer = setInterval(function () {
+    // 1) 현재 시간을 한국 시간(KST) 기준으로 문자열 생성
+    const todayKSTString = new Date().toLocaleString('en-US', {
+        timeZone: 'Asia/Seoul'
+    });
 
-  // get today's date
-  const today = new Date().getTime();
+    // 2) 문자열을 Date 객체로 변환하여 KST 현재 시각 구함
+    const todayTimeObj = new Date(todayKSTString);
 
-  // get the difference
-  const diff = myDate - today;
+    // 3) 올해가 끝날 때까지 남은 시간 diff(밀리초)
+    //    myDate(연말)도 로컬타임 기준이므로, todayTimeObj와 같은 기준으로 계산 가능
+    const diff = myDate.getTime() - todayTimeObj.getTime();
 
-  // math
-  let days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  let hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    // 4) 만약 diff가 0 이하 => 이미 연말 시점을 지났음
+    //    (연도가 바뀌었거나, 당해 12/31 23:59:59 이후라면 카운터 0으로 고정)
+    if (diff <= 0) {
+        clearInterval(timer);
+        document.getElementById("days").innerHTML = 0;
+        document.getElementById("hours").innerHTML = 0;
+        document.getElementById("minutes").innerHTML = 0;
+        document.getElementById("seconds").innerHTML = 0;
+        return;
+    }
 
-  // display
-  document.getElementById("days").innerHTML=days
-  document.getElementById("hours").innerHTML=hours
-  document.getElementById("minutes").innerHTML=minutes
-  document.getElementById("seconds").innerHTML=seconds
+    // -----------------------------
+    // day: 연말까지 남은 일수 계산
+    // -----------------------------
+    let days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    // -----------------------------
+    // hour, minute: 현재 시각 그대로
+    // -----------------------------
+    let hours = todayTimeObj.getHours();     // 0~23
+    let minutes = todayTimeObj.getMinutes(); // 0~59
+
+    // ----------------------------------------
+    // seconds: 60초부터 0초로 내려가는 형태
+    // ----------------------------------------
+    // 현재 초
+    let currentSec = todayTimeObj.getSeconds(); // 0~59
+
+    // 60 - 현재 초 => 60초에서 카운트다운
+    let seconds = 60 - currentSec;
+
+    // 만약 currentSec가 정확히 0이면, 60 - 0 = 60이 되므로 0으로 보정
+    if (seconds === 60) {
+        seconds = 0;
+    }
+
+    // -----------------------------
+    // 화면에 표시 (시/분/초 포맷 맞추기)
+    // -----------------------------
+    document.getElementById("days").innerHTML = days;
+
+    document.getElementById("hours").innerHTML =
+        hours < 10 ? "0" + hours : hours;
+
+    document.getElementById("minutes").innerHTML =
+        minutes < 10 ? "0" + minutes : minutes;
+
+    document.getElementById("seconds").innerHTML =
+        seconds < 10 ? "0" + seconds : seconds;
+}, 1000);
 
 
-
-}, 1);
 </script>
 </html>
